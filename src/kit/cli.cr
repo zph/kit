@@ -1,4 +1,4 @@
-module PK
+module Kit
   class CLI
     def self.call(config)
       config = config["binaries"].as_h

@@ -1,5 +1,5 @@
 ``` playground
-require "./src/pk.cr"
+require "./src/kit.cr"
 # puts system("ls -lah #{dir.to_s}/")
 # system("cp -a #{dir.to_s}/teleport .")
 # LOG.debug("output"){ [stdout.to_s, stderr.to_s, process] }

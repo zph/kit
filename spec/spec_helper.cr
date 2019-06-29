@@ -1,2 +1,2 @@
 require "spec"
-require "../src/pk"
+require "../src/kit"

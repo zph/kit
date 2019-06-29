@@ -1,7 +1,7 @@
 # TODO:
 # - Add tar.bz2 handling (various based on extension)
 # - Add callbacks - bash hooks with ENV setup so it can operate on the variables from here when called through Process
-module PK
+module Kit
   module Core
     def self.get(link)
       loop do
@@ -88,7 +88,7 @@ module PK
     end
 
     def self.write(response, sha256, filename, outputname, binaries)
-      dir = TempDir.new "pk"
+      dir = TempDir.new "kit"
       tmpfile = [dir.to_s, filename].join("/")
       LOG.info("tmpfile") { tmpfile }
       File.write(tmpfile, response.body)

@@ -1,4 +1,4 @@
-module PK
+module Kit
   class POpen
     def self.call(bin, args)
       stdout = IO::Memory.new

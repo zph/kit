@@ -5,10 +5,10 @@ require "logger"
 require "yaml"
 require "openssl"
 
-require "./pk/**"
+require "./kit/**"
 
 LOG = Logger.new(STDOUT, level: Logger::INFO)
 
-module PK
+module Kit
   VERSION = "0.1.0"
 end

@@ -1,6 +1,6 @@
 require "./spec_helper"
 
-describe Pk do
+describe Kit do
   # TODO: Write tests
 
   it "works" do
