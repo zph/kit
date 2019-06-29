@@ -1,8 +1,11 @@
 src = $(wildcard bin/*.cr) $(wildcard src/*.cr)
 output = dist/pk
 bin = bin/pk.cr
+DIR := ${CURDIR}
+output_linux := $(output)-linux-x86_64
+output_darwin := $(output)-darwin-x86_64
 
-build: $(output)
+build: $(output_darwin)
 
 .PHONY: clean
 clean:
@@ -16,12 +19,17 @@ run:
 play:
 	crystal play src/pk.cr
 
-$(output): $(src)
-	crystal build --release $(bin) -o $(output)
+$(output_darwin): $(src)
+	crystal build --release $(bin) -o $(output_darwin)
 
+$(output_linux): $(src)
+	docker run --rm -it -v $(DIR):/app -w /app durosoft/crystal-alpine crystal build $(bin) -o $(output_linux) --release --static
+
+# Credit: https://relativkreativ.at/articles/how-to-compile-a-crystal-project-with-static-linking
 .PHONY: linux
-linux:
-	docker run --rm -it -v $((PWD)):/app -w /app durosoft/crystal-alpine crystal build $(bin) -o $(output) --release --static
+linux: $(output_linux)
+
+all: $(output_linux) $(output_darwin)
 
 .PHONY: fmt
 fmt:
