@@ -1,0 +1,6 @@
+version: 1.0
+shards:
+  tempdir:
+    github: sam0x17/tempdir
+    version: 1.0.4
+

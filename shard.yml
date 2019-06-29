@@ -1,0 +1,17 @@
+name: pk
+version: 0.1.0
+
+authors:
+  - Zander Hill <zander@xargs.io>
+
+targets:
+  pk:
+    main: src/pk.cr
+
+dependencies:
+  tempdir:
+    github: sam0x17/tempdir
+
+crystal: 0.29.0
+
+license: MIT
