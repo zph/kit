@@ -14,6 +14,7 @@ module Kit
       scheme, host, path, fragment = uri.scheme, uri.host, uri.path, uri.fragment
       case {scheme, host, path, fragment}
       when {"github", String, String, String}
+        # TODO: allow for missing fragment to mean "latest" that does GH query
         client = Github::API.new(host, path.strip("/"))
         client.download_link(fragment, filter)
       when {"github", _, _, _}
@@ -96,12 +97,12 @@ module Kit
         def process_archive
           @binaries.to_a.map do |bin|
             match = Dir.glob("#{@dir}/{**/#{bin},#{bin}}").uniq
-              .tap { |m| LOG.debug("glob_matches") {m} }
+              .tap { |m| LOG.debug("glob_matches") { m } }
               .select do |m|
-              # Pin exact file binary name match
-              File.basename(m) == bin &&
-                File.file?(m)
-            end
+                # Pin exact file binary name match
+                File.basename(m) == bin &&
+                  File.file?(m)
+              end
             LOG.debug("glob") { match }
 
             if match && match.size == 1
