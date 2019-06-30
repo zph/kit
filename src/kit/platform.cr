@@ -8,6 +8,15 @@ module Kit
       def to_name
         "#{self}".downcase
       end
+
+      def to_regex
+        case self
+        when Darwin
+          /#{to_name}|osx/
+        else
+          /#{to_name}/
+        end
+      end
     end
 
     enum Architecture

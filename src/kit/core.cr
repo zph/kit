@@ -1,9 +1,33 @@
 # TODO:
 # - Add tar.bz2 handling (various based on extension)
 # - Add callbacks - bash hooks with ENV setup so it can operate on the variables from here when called through Process
+# - Use link: github://ORG/REPO/RELEASE_NAME syntax + this
+# ---- curl https://api.github.com/repos/stedolan/jq/releases/tags/jq-1.6 | jq '.assets[] | .browser_download_url'
+# ---- and judicious use of Regexes to guess the right things to install
 module Kit
   module Core
     def self.get(link)
+      uri = URI.parse(link)
+      host = uri.host
+      path = uri.path
+      fragment = uri.fragment
+      if host && path && fragment
+        download_link = case uri.scheme
+                        when "github"
+                          # Parse url github://stedolan/jq@jq-1.6
+                          # Github::API.new()
+                          client = Github::API.new(host, path.strip("/"))
+                          client.download_link(fragment)
+                        when /^https?$/
+                          link
+                        else
+                          link
+                        end
+        get_http(download_link)
+      end
+    end
+
+    def self.get_http(link)
       loop do
         response = HTTP::Client.get(link)
         LOG.info("status_code") { response.status_code }
@@ -17,6 +41,7 @@ module Kit
         end
       end
     end
+
 
     class Binary
       def self.copy(src, folder, file)
