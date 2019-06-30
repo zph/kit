@@ -8,6 +8,9 @@ module Kit
   module Core
     def self.get(link)
       uri = URI.parse(link)
+      if uri.scheme.nil?
+        uri = URI.parse("github://" + link)
+      end
       scheme, host, path, fragment = uri.scheme, uri.host, uri.path, uri.fragment
       download_link = case {scheme, host, path, fragment}
                       when {"github", String, String, String}
@@ -17,6 +20,7 @@ module Kit
                         raise("Invalid github uri format #{link}")
                       when {/^https?$/, String, String, String}
                         link
+                      # when {/^file?$/, String, String, String}
                       else
                         link
                       end

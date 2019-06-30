@@ -14,8 +14,9 @@ help = false
 
 o = OptionParser.parse! do |parser|
   parser.banner = ["Usage: kit --c kit.yaml",
-                   "With Flags (GH) : kit --install github://stedolan/jq#jq-1.6 -o ~/bin --binaries jq",
-                   "With Flags (URI): kit --install https://example.com/foobar.tar.gz -o dist --binaries foo,bar"].join("\n")
+                   "From Github      : kit --install stedolan/jq#jq-1.6 -o ~/bin --binaries jq",
+                   "From Github Long : kit --install github://stedolan/jq#jq-1.6 -o ~/bin --binaries jq",
+                   "From URI         : kit --install https://example.com/foobar.tar.gz -o dist --binaries foo,bar"].join("\n")
   parser.on("-c CONFIG", "--config=CONFIG", "Configuration kit.yaml") { |k| config = k }
   parser.on("-i URI", "--install=URI", "Specifies the URI of package to install") { |n| install = n }
   parser.on("-o FOLDER", "--output=FOLDER", "Specifies the output destination") { |n| destination = n }
