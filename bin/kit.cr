@@ -11,6 +11,7 @@ binaries = nil
 version = nil
 sha256 = nil
 help = false
+filter = ".*"
 
 o = OptionParser.parse! do |parser|
   parser.banner = ["Usage: kit --c kit.yaml",
@@ -21,6 +22,7 @@ o = OptionParser.parse! do |parser|
   parser.on("-i URI", "--install=URI", "Specifies the URI of package to install") { |n| install = n }
   parser.on("-o FOLDER", "--output=FOLDER", "Specifies the output destination") { |n| destination = n }
   parser.on("-b BINARIES", "--binaries=BINARIES", "Comma separated list of names") { |n| binaries = n.split(",").map { |i| i.strip } }
+  parser.on("-f FILTER", "--filter=FILTER", "Download link filter") { |n| filter = n }
   parser.on("-t TAG", "--tag=TAG", "Specifies the tag to install") { |n| version = n }
   parser.on("-s SHA", "--sha256=SHA", "Specifies the sha256 to verify") { |n| sha256 = n }
   parser.on("-h", "--help", "Show help") { help = true; puts parser }
@@ -47,11 +49,11 @@ def by_config(config : Nil)
   raise("Invalid config file")
 end
 
-def individual_install(uri, destination, binaries : Nil, version, sha256)
+def individual_install(uri, destination, binaries : Nil, version, sha256, filter)
   raise("Missing binaries flag data")
 end
 
-def individual_install(uri, destination, binaries : Array(String), version, sha256)
+def individual_install(uri, destination, binaries : Array(String), version, sha256, filter)
   config = {
     "binaries" => {
       binaries.first => {
@@ -66,6 +68,7 @@ def individual_install(uri, destination, binaries : Array(String), version, sha2
             "link"    => uri,
             "version" => version,
             "sha256"  => sha256,
+            "filter"  => filter,
           },
         },
       },
@@ -79,7 +82,7 @@ case {config, install, destination, binaries, help}
 when {String, _, _, _, _}
   by_config(config)
 when {_, String, String, Array(String), _}
-  individual_install(install, destination, binaries, version, sha256)
+  individual_install(install, destination, binaries, version, sha256, filter)
 else
   if help
     exit(1)
