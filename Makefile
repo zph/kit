@@ -13,7 +13,7 @@ clean:
 
 .PHONY: run
 run:
-	crystal run $(bin)
+	crystal run $(bin) -- kit.yaml.example
 
 .PHONY: play
 play:

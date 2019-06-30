@@ -5,6 +5,7 @@ module Kit
       config.each do |k, v|
         platform = OS.platform
         bin = v["platform"][platform.to_name].as_h
+        LOG.debug(bin)
         general = v["general"].as_h
         link, sha256, version = ["link", "sha256", "version"].map { |k| bin[k].to_s }
         output, version_cmd = ["output", "version_cmd"].map { |k| general[k].to_s }
@@ -24,6 +25,7 @@ module Kit
         LOG.debug("match") { match }
         unless match && match.captures.size > 0
           response = Core.get(link)
+          LOG.debug("response"){ response }
           if response
             result = Core.write(response, sha256, filename, output, binaries)
             if general["post_install"]?

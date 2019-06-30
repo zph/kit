@@ -7,7 +7,7 @@ require "openssl"
 
 require "./kit/**"
 
-LOG = Logger.new(STDOUT, level: Logger::INFO)
+LOG = Logger.new(STDOUT, level: Logger::DEBUG)
 
 module Kit
   VERSION = "0.1.0"

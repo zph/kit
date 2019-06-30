@@ -11,13 +11,17 @@ module Kit
       host = uri.host
       path = uri.path
       fragment = uri.fragment
-      if host && path && fragment
+      if host && path
         download_link = case uri.scheme
                         when "github"
-                          # Parse url github://stedolan/jq@jq-1.6
+                          # Parse url github://stedolan/jq#jq-1.6
                           # Github::API.new()
                           client = Github::API.new(host, path.strip("/"))
-                          client.download_link(fragment)
+                          if fragment
+                            client.download_link(fragment)
+                          else
+                            raise("Missing required fragment: Format = github://stedolan/jq#jq-1.6")
+                          end
                         when /^https?$/
                           link
                         else
