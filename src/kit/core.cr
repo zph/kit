@@ -8,44 +8,35 @@ module Kit
   module Core
     def self.get(link)
       uri = URI.parse(link)
-      host = uri.host
-      path = uri.path
-      fragment = uri.fragment
-      if host && path
-        download_link = case uri.scheme
-                        when "github"
-                          # Parse url github://stedolan/jq#jq-1.6
-                          # Github::API.new()
-                          client = Github::API.new(host, path.strip("/"))
-                          if fragment
-                            client.download_link(fragment)
-                          else
-                            raise("Missing required fragment: Format = github://stedolan/jq#jq-1.6")
-                          end
-                        when /^https?$/
-                          link
-                        else
-                          link
-                        end
-        get_http(download_link)
-      end
+      scheme, host, path, fragment = uri.scheme, uri.host, uri.path, uri.fragment
+      download_link = case {scheme, host, path, fragment}
+                      when {"github", String, String, String}
+                        client = Github::API.new(host, path.strip("/"))
+                        client.download_link(fragment)
+                      when {"github", _, _, _}
+                        raise("Invalid github uri format #{link}")
+                      when {/^https?$/, String, String, String}
+                        link
+                      else
+                        link
+                      end
+      get_http(download_link)
     end
 
     def self.get_http(link)
       loop do
         response = HTTP::Client.get(link)
         LOG.info("status_code") { response.status_code }
-        case
-        when response.status_code == 302
+        case response.status_code
+        when 302
           link = response.headers["Location"]
-        when response.status_code == 200
+        when 200
           return response
           break
         else
         end
       end
     end
-
 
     class Binary
       def self.copy(src, folder, file)
@@ -103,8 +94,7 @@ module Kit
             if match
               Binary.copy(match, @outputname, bin)
             else
-              LOG.error("Unable to find binary")
-              exit(1)
+              raise("Unable to find binary")
             end
           end
         end
@@ -116,12 +106,8 @@ module Kit
       end
     end
 
-    def self.write(response, sha256, filename, outputname, binaries)
-      dir = TempDir.new "kit"
-      tmpfile = [dir.to_s, filename].join("/")
-      LOG.info("tmpfile") { tmpfile }
-      File.write(tmpfile, response.body)
-      digest = OpenSSL::Digest.new("sha256").update(response.body).hexdigest
+    def self.compare_digest(body, sha256)
+      digest = OpenSSL::Digest.new("sha256").update(body).hexdigest
       LOG.info("sha256") { digest }
       if !(digest == sha256)
         LOG.error("digest comparison failed")
@@ -130,10 +116,19 @@ module Kit
       else
         LOG.info("sha comparison") { "success" }
       end
+    end
 
-      # extname = File.extname(filename).downcase
+    def self.write(response, sha256, filename, outputname, binaries)
+      dir = TempDir.new "kit"
+      tmpfile = [dir.to_s, filename].join("/")
+      LOG.info("tmpfile") { tmpfile }
+      File.write(tmpfile, response.body)
+
+      compare_digest(response.body, sha256)
+
+      # Builtin extname parses in way that's not helpful to us (.gz, instead of full .tar.gz)
       extname = filename.split(".", 2).last.downcase
-      # Handle TAR GZ
+
       FileUtils.mkdir_p(outputname)
       LOG.info("extname") { extname }
       case

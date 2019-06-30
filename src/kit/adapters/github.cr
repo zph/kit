@@ -5,6 +5,7 @@ module Kit
   module Github
     class API
       ENDPOINT = "https://api.github.com"
+
       def initialize(@org : String, @repo : String)
       end
 
