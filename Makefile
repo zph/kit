@@ -2,8 +2,8 @@ src = $(wildcard bin/*.cr) $(wildcard src/*.cr)
 output = dist/kit
 bin = bin/kit.cr
 DIR := ${CURDIR}
-output_linux := $(output)-linux-x86_64
-output_darwin := $(output)-darwin-x86_64
+output_linux := $(output)-linux-amd64
+output_darwin := $(output)-darwin-amd64
 installed := ~/bin_local/kit
 
 .PHONY: build
