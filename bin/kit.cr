@@ -24,6 +24,7 @@ o = OptionParser.parse! do |parser|
   parser.on("-t TAG", "--tag=TAG", "Specifies the tag to install") { |n| version = n }
   parser.on("-s SHA", "--sha256=SHA", "Specifies the sha256 to verify") { |n| sha256 = n }
   parser.on("-h", "--help", "Show help") { help = true; puts parser }
+  parser.on("-v", "--version", "Show version") { puts Kit::VERSION; exit }
   parser.invalid_option do |flag|
     STDERR.puts "ERROR: #{flag} is not a valid option."
     STDERR.puts parser

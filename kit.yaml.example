@@ -42,3 +42,17 @@ binaries:
         link: https://get.gravitational.com/teleport-v3.0.1-darwin-amd64-bin.tar.gz
         version: v3.0.1
         sha256: 755abfa6942c5b2fbfd66eb59de0bdd75aea953369f56dd12fcddd0eab7e7d00
+  github-release:
+    general:
+      version_cmd: "--version"
+      output: data
+      binaries:
+      - github-release
+      post_install:
+      - chmod +x github-release
+    platform:
+      darwin:
+        link: c4milo/github-release#v1.1.0
+        filter: gz$
+        version: v1.1.0
+        sha256: e3beccb4517ebf7fb5015349b787e92d15d767d6814025824c8eaebe0d46c775

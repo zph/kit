@@ -6,25 +6,28 @@
 # ---- and judicious use of Regexes to guess the right things to install
 module Kit
   module Core
-    def self.get(link)
+    def self.resolve_link(link, filter = ".*") : String
       uri = URI.parse(link)
       if uri.scheme.nil?
         uri = URI.parse("github://" + link)
       end
       scheme, host, path, fragment = uri.scheme, uri.host, uri.path, uri.fragment
-      download_link = case {scheme, host, path, fragment}
-                      when {"github", String, String, String}
-                        client = Github::API.new(host, path.strip("/"))
-                        client.download_link(fragment)
-                      when {"github", _, _, _}
-                        raise("Invalid github uri format #{link}")
-                      when {/^https?$/, String, String, String}
-                        link
-                      # when {/^file?$/, String, String, String}
-                      else
-                        link
-                      end
-      get_http(download_link)
+      case {scheme, host, path, fragment}
+      when {"github", String, String, String}
+        client = Github::API.new(host, path.strip("/"))
+        client.download_link(fragment, filter)
+      when {"github", _, _, _}
+        raise("Invalid github uri format #{link}")
+      when {/^https?$/, String, String, String}
+        link
+        # when {/^file?$/, String, String, String}
+      else
+        link
+      end
+    end
+
+    def self.get(link)
+      get_http(link)
     end
 
     def self.get_http(link)
@@ -45,7 +48,7 @@ module Kit
     class Binary
       def self.copy(src, folder, file)
         output = [folder, file].join("/")
-        LOG.debug("output") { output }
+        LOG.info("output, src") { [output, src] }
         FileUtils.cp(src, output)
         File.expand_path(output)
       end
@@ -92,13 +95,19 @@ module Kit
 
         def process_archive
           @binaries.to_a.map do |bin|
-            match = Dir.glob("#{@dir}/**/#{bin}").tap { |m| LOG.info(m) }.select { |m| File.file?(m) && File.executable?(m) }.first
+            match = Dir.glob("#{@dir}/{**/#{bin},#{bin}}").uniq
+              .tap { |m| LOG.debug("glob_matches") {m} }
+              .select do |m|
+              # Pin exact file binary name match
+              File.basename(m) == bin &&
+                File.file?(m)
+            end
             LOG.debug("glob") { match }
 
-            if match
-              Binary.copy(match, @outputname, bin)
+            if match && match.size == 1
+              Binary.copy(match.first, @outputname, bin)
             else
-              raise("Unable to find binary")
+              raise("Unable to find binary too many matching names #{match}")
             end
           end
         end
@@ -137,10 +146,11 @@ module Kit
       compare_digest(response.body, sha256)
 
       # Builtin extname parses in way that's not helpful to us (.gz, instead of full .tar.gz)
-      extname = filename.split(".", 2).last.downcase
+      # Remove fragment in case its present
+      extname = filename.split("#").first.split(".", 2).last.downcase
 
       FileUtils.mkdir_p(outputname)
-      LOG.info("extname") { extname }
+      LOG.debug("filename") { filename }
       case
       when Archive::Targz.match?(filename)
         Archive::Targz.new(binaries, dir.to_s, outputname).process(tmpfile)

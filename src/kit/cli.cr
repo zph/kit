@@ -21,6 +21,12 @@ module Kit
         raise("Missing link")
       end
 
+      filter = if f = bin["filter"]?
+                 f
+               else
+                 ".*"
+               end
+
       output, version_cmd = ["output", "version_cmd"].map { |k| reflect(general[k]) }
       if !output
         raise("Missing output location")
@@ -29,7 +35,7 @@ module Kit
       binaries = general["binaries"].as_a
 
       primary = [output, File.basename(binaries.first.to_s)].join("/")
-      filename = link.split("/").last
+      # Only valid for full http links with tar.gz, fails for shorthand tar.gz on Github
       match = case {primary, version_cmd}
               when {String, String}
                 if File.exists?(primary) && File.executable?(primary)
@@ -43,9 +49,11 @@ module Kit
               end
       LOG.debug("match") { match }
       unless match && match.captures.size > 0
+        link = Core.resolve_link(link, filter)
         response = Core.get(link)
         LOG.debug("response") { response }
-        if response
+        filename = link.split("/").last
+        if response && filename
           result = Core.write(response, sha256, filename, output, binaries)
           if general["post_install"]?
             post_install = general["post_install"].as_a
