@@ -39,6 +39,17 @@ linux: $(output_linux)
 
 all: $(output_linux) $(output_darwin)
 
+# Credit: https://github.com/c4milo/github-release/blob/master/Makefile
+# release: dist
+# 	@latest_tag=$$(git describe --tags `git rev-list --tags --max-count=1`); \
+# 	comparison="$$latest_tag..HEAD"; \
+# 	if [ -z "$$latest_tag" ]; then comparison=""; fi; \
+# 	changelog=$$(git log $$comparison --oneline --no-merges); \
+# 	github-release c4milo/$(NAME) $(VERSION) "$$(git rev-parse --abbrev-ref HEAD)" "**Changelog**<br/>$$changelog" 'dist/*'; \
+# 	git pull
+release:
+	github-release zph/kit $(shell crystal run bin/kit.cr -- --version) "$(git rev-parse --abbrev-ref HEAD)" "MESSAGE" 'dist/kit-*'
+
 .PHONY: fmt
 fmt:
 	crystal tool format
