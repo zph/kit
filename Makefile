@@ -17,7 +17,7 @@ $(installed): $(output_darwin)
 
 .PHONY: clean
 clean:
-	rm -f data/kit-*
+	rm -f dist/*
 
 .PHONY: run
 run:
@@ -48,7 +48,7 @@ all: $(output_linux) $(output_darwin)
 # 	github-release c4milo/$(NAME) $(VERSION) "$$(git rev-parse --abbrev-ref HEAD)" "**Changelog**<br/>$$changelog" 'dist/*'; \
 # 	git pull
 release:
-	github-release zph/kit $(shell crystal run bin/kit.cr -- --version) "$(git rev-parse --abbrev-ref HEAD)" "MESSAGE" 'dist/kit-*'
+	github-release zph/kit $(shell crystal run bin/kit.cr -- --version) "$(git rev-parse --abbrev-ref HEAD)" "MESSAGE" 'dist/kit-*-amd64'
 
 .PHONY: fmt
 fmt:
