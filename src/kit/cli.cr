@@ -1,25 +1,46 @@
 module Kit
   class CLI
+    def self.reflect(v)
+      String | Nil
+      case i = v
+      when .as_s? then i.to_s
+      else
+        nil
+      end
+    end
+
     def self.process_request(binaryname, config, done)
       platform = OS.platform
       bin = config["platform"][platform.to_name].as_h
       LOG.debug(bin)
       general = config["general"].as_h
-      link, sha256, version = ["link", "sha256", "version"].map { |k| bin[k].to_s }
-      output, version_cmd = ["output", "version_cmd"].map { |k| general[k].to_s }
+      link = ["link", "sha256", "version"].map { |k| bin[k].to_s }
+      # Allow for nil pattern matching on fn heads
+      link, sha256, version = ["link", "sha256", "version"].map { |k| reflect(bin[k]) }
+      if !link
+        raise("Missing link")
+      end
+
+      output, version_cmd = ["output", "version_cmd"].map { |k| reflect(general[k]) }
+      if !output
+        raise("Missing output location")
+      end
+
       binaries = general["binaries"].as_a
 
       primary = [output, File.basename(binaries.first.to_s)].join("/")
       filename = link.split("/").last
-      match = if File.exists?(primary) && File.executable?(primary)
-                stdout, stderr, process = POpen.call(primary, [version_cmd].compact)
-                version_string = [stdout.to_s, stderr.to_s].join(" ")
-                LOG.debug(version_string)
-                Regex.new(".*(#{version}).*").match(version_string)
-              else
-                Regex.new("x").match("y")
+      match = case {primary, version_cmd}
+              when {String, String}
+                if File.exists?(primary) && File.executable?(primary)
+                  stdout, stderr, process = POpen.call(primary, [version_cmd].compact)
+                  version_string = [stdout.to_s, stderr.to_s].join(" ")
+                  LOG.debug(version_string)
+                  Regex.new(".*(#{version}).*").match(version_string)
+                else
+                  Regex.new("x").match("y")
+                end
               end
-
       LOG.debug("match") { match }
       unless match && match.captures.size > 0
         response = Core.get(link)

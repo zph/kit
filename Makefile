@@ -4,12 +4,20 @@ bin = bin/kit.cr
 DIR := ${CURDIR}
 output_linux := $(output)-linux-x86_64
 output_darwin := $(output)-darwin-x86_64
+installed := ~/bin_local/kit
 
+.PHONY: build
 build: $(output_darwin)
+
+.PHONY: install
+install: $(installed)
+
+$(installed): $(output_darwin)
+	cp -f $(output_darwin) $(installed) && chmod +x $(installed)
 
 .PHONY: clean
 clean:
-	rm -f data/*
+	rm -f data/kit-*
 
 .PHONY: run
 run:

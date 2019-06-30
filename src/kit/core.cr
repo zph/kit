@@ -106,7 +106,13 @@ module Kit
       end
     end
 
-    def self.compare_digest(body, sha256)
+    def self.compare_digest(body, sha256 : Nil)
+      LOG.info("digest") { "Not provided, skipping verification" }
+      digest = OpenSSL::Digest.new("sha256").update(body).hexdigest
+      LOG.info("downloaded digest") { digest }
+    end
+
+    def self.compare_digest(body, sha256 : String)
       digest = OpenSSL::Digest.new("sha256").update(body).hexdigest
       LOG.info("sha256") { digest }
       if !(digest == sha256)
