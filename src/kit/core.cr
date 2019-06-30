@@ -5,14 +5,33 @@
 # ---- curl https://api.github.com/repos/stedolan/jq/releases/tags/jq-1.6 | jq '.assets[] | .browser_download_url'
 # ---- and judicious use of Regexes to guess the right things to install
 module Kit
+  class URI
+    def initialize(@link : String)
+      @uri = ::URI.parse(@link)
+
+      if @uri.scheme.nil?
+        @uri = ::URI.parse("github://" + link)
+      end
+
+      if @uri.fragment.nil?
+        @uri.fragment = "latest"
+      end
+    end
+
+    def uri
+      @uri
+    end
+  end
+
   module Core
     def self.resolve_link(link, filter = ".*") : String
-      uri = URI.parse(link)
-      if uri.scheme.nil?
-        uri = URI.parse("github://" + link)
-      end
+      uri = Kit::URI.new(link).uri
       scheme, host, path, fragment = uri.scheme, uri.host, uri.path, uri.fragment
       case {scheme, host, path, fragment}
+      when {"github", String, String, "latest"}
+        # TODO: allow for missing fragment to mean "latest" that does GH query
+        client = Github::API.new(host, path.strip("/"))
+        client.download_link(nil, filter)
       when {"github", String, String, String}
         # TODO: allow for missing fragment to mean "latest" that does GH query
         client = Github::API.new(host, path.strip("/"))

@@ -14,9 +14,9 @@ help = false
 filter = ".*"
 
 o = OptionParser.parse! do |parser|
-  parser.banner = ["Usage: kit --c kit.yaml",
-                   "From Github      : kit --install stedolan/jq#jq-1.6 -o ~/bin --binaries jq",
-                   "From Github Long : kit --install github://stedolan/jq#jq-1.6 -o ~/bin --binaries jq",
+  parser.banner = ["Usage: kit -c kit.yaml",
+                   "From Github      : kit -i stedolan/jq -o ~/bin",
+                   "From Github Long : kit --install github://stedolan/jq#jq-1.6 --output ~/bin --binaries jq",
                    "From URI         : kit --install https://example.com/foobar.tar.gz -o dist --binaries foo,bar"].join("\n")
   parser.on("-c CONFIG", "--config=CONFIG", "Configuration kit.yaml") { |k| config = k }
   parser.on("-i URI", "--install=URI", "Specifies the URI of package to install") { |n| install = n }
@@ -81,6 +81,10 @@ end
 case {config, install, destination, binaries, help}
 when {String, _, _, _, _}
   by_config(config)
+when {_, String, String, Nil, _}
+  # Allow shorthand that skips specifying binaries for simple cases
+  binaries = [URI.parse(install.to_s).path.split("/").last.strip("/")]
+  individual_install(install, destination, binaries, version, sha256, filter)
 when {_, String, String, Array(String), _}
   individual_install(install, destination, binaries, version, sha256, filter)
 else
