@@ -34,14 +34,75 @@ o = OptionParser.parse! do |parser|
   end
 end
 
+module Config
+  class General
+    include YAML::Serializable
+
+    @[YAML::Field(key: "binaries")]
+    property binaries : Array(String)
+
+    @[YAML::Field(key: "post_install")]
+    property post_install : Array(String)?
+
+    @[YAML::Field(key: "output")]
+    property output : String?
+
+    @[YAML::Field(key: "version_cmd")]
+    property version_cmd : String?
+  end
+
+  class Platform
+    include YAML::Serializable
+
+    @[YAML::Field(key: "link")]
+    property link : String
+
+    @[YAML::Field(key: "version")]
+    property version : String
+
+    @[YAML::Field(key: "sha256")]
+    property sha256 : String?
+
+    @[YAML::Field(key: "filter")]
+    property filter : String?
+  end
+
+  class Binary
+    include YAML::Serializable
+
+    @[YAML::Field(key: "general")]
+    property general : General
+
+    @[YAML::Field(key: "platform")]
+    property platform : Hash(String, Platform)
+  end
+
+  class Core
+    include YAML::Serializable
+
+    @[YAML::Field(key: "version")]
+    property version : String
+
+    @[YAML::Field(key: "defaults")]
+    property defaults : Hash(String, String)?
+
+    @[YAML::Field(key: "binaries")]
+    property binaries : Hash(String, Binary)
+  end
+end
+
 def by_config(config : String)
   c = File.open(config) do |file|
-    YAML.parse(file)
+    Config::Core.from_yaml(file)
   end
   by_config(c)
 end
 
 def by_config(config : YAML::Any)
+  Kit::CLI.call(config)
+end
+
+def by_config(config : Config::Core)
   Kit::CLI.call(config)
 end
 
@@ -55,6 +116,7 @@ end
 
 def individual_install(uri, destination, binaries : Array(String), version, sha256, filter)
   config = {
+    "version"  => "v1",
     "binaries" => {
       binaries.first => {
         "general" => {
@@ -75,7 +137,7 @@ def individual_install(uri, destination, binaries : Array(String), version, sha2
     },
   }.to_json
 
-  by_config(YAML.parse(config))
+  by_config(Config::Core.from_yaml(config))
 end
 
 case {config, install, destination, binaries, help}

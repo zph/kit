@@ -11,28 +11,28 @@ module Kit
 
     def self.process_request(binaryname, config, done)
       platform = OS.platform
-      bin = config["platform"][platform.to_name].as_h
+      bin = config.platform[platform.to_name]
       LOG.debug(bin)
-      general = config["general"].as_h
-      link = ["link", "sha256", "version"].map { |k| bin[k].to_s }
+      general = config.general
+      link = bin.link
       # Allow for nil pattern matching on fn heads
-      link, sha256, version = ["link", "sha256", "version"].map { |k| reflect(bin[k]) }
+      link, sha256, version = bin.link, bin.sha256, bin.version
       if !link
         raise("Missing link")
       end
 
-      filter = if f = bin["filter"]?
+      filter = if f = bin.filter
                  f
                else
                  ".*"
                end
 
-      output, version_cmd = ["output", "version_cmd"].map { |k| reflect(general[k]) }
+      output, version_cmd = general.output, general.version_cmd
       if !output
         raise("Missing output location")
       end
 
-      binaries = general["binaries"].as_a
+      binaries = general.binaries
 
       primary = [output, File.basename(binaries.first.to_s)].join("/")
       # Only valid for full http links with tar.gz, fails for shorthand tar.gz on Github
@@ -55,8 +55,7 @@ module Kit
         filename = link.split("/").last
         if response && filename
           result = Core.write(response, sha256, filename, output, binaries)
-          if general["post_install"]?
-            post_install = general["post_install"].as_a
+          if post_install = general.post_install
             LOG.info("post_install") { post_install }
             post_install.each do |hook|
               Process.run("bash", ["-c", hook.to_s], chdir: output)
@@ -70,10 +69,10 @@ module Kit
       done.send(1)
     end
 
-    def self.call(config)
-      config = config["binaries"].as_h
+    def self.call(config : Config::Core)
+      binaries = config.binaries
       done = Channel(Int32).new
-      config.each do |k, v|
+      binaries.each do |k, v|
         spawn do
           process_request(k, v, done)
         end
@@ -81,7 +80,7 @@ module Kit
 
       # Wait for threads to finish
       # TODO: handle orphaned threads if something fails
-      config.keys.size.times do
+      binaries.keys.size.times do
         done.receive
       end
     end

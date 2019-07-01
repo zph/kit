@@ -96,7 +96,7 @@ module Kit
       #       end
 
       class Targz < Base
-        def initialize(@binaries : Array(YAML::Any), @dir : String, @outputname : String)
+        def initialize(@binaries : Array(String), @dir : String, @outputname : String)
         end
 
         def self.extensions

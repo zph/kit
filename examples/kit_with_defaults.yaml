@@ -1,8 +1,8 @@
 ---
+version: v1
 defaults: &defaults
   output: ~/tmp/kit/bin
   version_cmd: "--version"
-
 binaries:
   jq:
     general:
