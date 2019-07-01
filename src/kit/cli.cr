@@ -69,7 +69,7 @@ module Kit
       done.send(1)
     end
 
-    def self.call(config : Config::Core)
+    def self.call(config : Config)
       binaries = config.binaries
       done = Channel(Int32).new
       binaries.each do |k, v|
