@@ -6,24 +6,19 @@ output_linux := $(output)-linux-amd64
 output_darwin := $(output)-darwin-amd64
 installed := ~/bin_local/kit
 
-.PHONY: build
 build: $(output_darwin)
 
-.PHONY: install
 install: $(installed)
 
 $(installed): $(output_darwin)
 	cp -f $(output_darwin) $(installed) && chmod +x $(installed)
 
-.PHONY: clean
 clean:
 	rm -f dist/*
 
-.PHONY: run
 run:
 	crystal run $(bin) -- kit.yaml.example
 
-.PHONY: play
 play:
 	crystal play src/kit.cr
 
@@ -34,10 +29,13 @@ $(output_linux): $(src)
 	docker run --rm -it -v $(DIR):/app -w /app durosoft/crystal-alpine crystal build $(bin) -o $(output_linux) --release --static
 
 # Credit: https://relativkreativ.at/articles/how-to-compile-a-crystal-project-with-static-linking
-.PHONY: linux
 linux: $(output_linux)
 
 all: $(output_linux) $(output_darwin)
+
+
+test:
+	bats spec/acceptance.bats
 
 # Credit: https://github.com/c4milo/github-release/blob/master/Makefile
 # release: dist
@@ -55,6 +53,7 @@ release: all
 	./data/github-release zph/kit v$(shell crystal run bin/kit.cr -- --version) "$(shell git rev-parse --abbrev-ref HEAD)" "**Changelog**<br/>$$changelog" 'dist/kit-*-amd64' && \
 		git pull
 
-.PHONY: fmt
 fmt:
 	crystal tool format
+
+.PHONY: run play linux fmt clean
