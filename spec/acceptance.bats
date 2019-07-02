@@ -1,3 +1,5 @@
+#!/usr/bin/env bats
+
 @test "invoking kit with a stedolan/jq" {
   run crystal run bin/kit.cr -- --install stedolan/jq -o "$BATS_TMPDIR"
   [ "$status" -eq 0 ]

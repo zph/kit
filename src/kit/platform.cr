@@ -23,6 +23,10 @@ module Kit
       X32
       X64
       Unknown
+
+      def to_name
+        "#{self}".gsub(/[^\d]/, "")
+      end
     end
 
     def self.platform
@@ -38,14 +42,14 @@ module Kit
       end
     end
 
-    def self.arch
+    def self.arch : Architecture
       stdout, stderr, process = Kit::POpen.call("uname", ["-m"])
       platform = stdout.to_s.downcase.chomp
       case platform
       when "x86_64"
         Architecture::X64
-      when /i[3-6]86/,
-           Architecture::X32
+      when /i[3-6]86/
+        Architecture::X32
       else
         Architecture::Unknown
       end

@@ -1,2 +1,5 @@
 require "spec"
+require "mocks"
+require "mocks/spec"
 require "../src/kit"
+require "../src/kit/adapters/*"

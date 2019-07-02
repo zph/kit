@@ -1,5 +1,13 @@
 version: 1.0
 shards:
+  mocks:
+    github: waterlink/mocks.cr
+    version: 0.9.6
+
+  singleton:
+    github: waterlink/singleton.cr
+    version: 1.0.0
+
   tempdir:
     github: sam0x17/tempdir
     version: 1.0.4

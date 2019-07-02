@@ -10,7 +10,7 @@ module Kit
     @[YAML::Field(key: "defaults")]
     property defaults : Hash(String, String)?
 
-      @[YAML::Field(key: "binaries")]
+    @[YAML::Field(key: "binaries")]
     property binaries : Hash(String, Binary)
 
     class General
@@ -22,7 +22,7 @@ module Kit
       @[YAML::Field(key: "post_install")]
       property post_install : Array(String)?
 
-        @[YAML::Field(key: "output")]
+      @[YAML::Field(key: "output")]
       property output : String?
 
       @[YAML::Field(key: "version_cmd")]

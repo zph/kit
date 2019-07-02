@@ -11,6 +11,9 @@ targets:
 dependencies:
   tempdir:
     github: sam0x17/tempdir
+  mocks:
+    github: waterlink/mocks.cr
+    version: ~> 0.9
 
 crystal: 0.29.0
 
