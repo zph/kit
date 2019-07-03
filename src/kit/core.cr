@@ -12,42 +12,45 @@ module Kit
       if @uri.scheme.nil?
         @uri = ::URI.parse("github://" + link)
       end
-
-      if @uri.fragment.nil?
-        @uri.fragment = "latest"
-      end
     end
 
     def uri
       @uri
+    end
+
+    def latest?
+      @uri.fragment.nil?
     end
   end
 
   module Core
     def self.resolve_link(link, filter = ".*") : String
       uri = Kit::URI.new(link).uri
-      scheme, host, path, fragment = uri.scheme, uri.host, uri.path, uri.fragment
+      scheme, host, path, fragment = uri.scheme, uri.host, uri.path.strip("/"), uri.fragment
       case {scheme, host, path, fragment}
-      when {"github", String, String, "latest"}
-        # TODO: allow for missing fragment to mean "latest" that does GH query
-        client = Github::API.new(host, path.strip("/"))
-        client.download_link(nil, filter)
-      when {"github", String, String, String}
-        # TODO: allow for missing fragment to mean "latest" that does GH query
-        client = Github::API.new(host, path.strip("/"))
+      when {"github", String, String, String?}
+        client = Adapters::Github::API.new(host, path)
         client.download_link(fragment, filter)
       when {"github", _, _, _}
         raise("Invalid github uri format #{link}")
       when {/^https?$/, String, String, String}
         link
-        # when {/^file?$/, String, String, String}
+      when {"file", String, String, _}
+        link
       else
         link
       end
     end
 
     def self.get(link)
-      get_http(link)
+      uri = ::URI.parse(link)
+      case uri.scheme
+      when "https", "http"
+        get_http(link).body
+      when "file"
+        # "file://~/tmp/kit/bin/jq"
+        File.read(link.split("//", 2).last)
+      end
     end
 
     def self.get_http(link)
@@ -69,7 +72,7 @@ module Kit
       def self.copy(src, folder, file)
         output = [folder, file].join("/")
         LOG.info("output, src") { [output, src] }
-        FileUtils.cp(src, output)
+        FileUtils.cp(src, File.expand_path(output))
         File.expand_path(output)
       end
     end
@@ -157,13 +160,13 @@ module Kit
       end
     end
 
-    def self.write(response, sha256, filename, outputname, binaries)
+    def self.write(content, sha256, filename, outputname, binaries)
       dir = TempDir.new "kit"
       tmpfile = [dir.to_s, filename].join("/")
       LOG.info("tmpfile") { tmpfile }
-      File.write(tmpfile, response.body)
+      File.write(tmpfile, content)
 
-      compare_digest(response.body, sha256)
+      compare_digest(content, sha256)
 
       # Builtin extname parses in way that's not helpful to us (.gz, instead of full .tar.gz)
       # Remove fragment in case its present

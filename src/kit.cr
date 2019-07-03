@@ -7,7 +7,8 @@ require "openssl"
 
 require "./kit/**"
 
-LOG = Logger.new(STDOUT, level: Logger::INFO)
+LOG_LEVEL = Logger::Severity.parse((ENV["LOG_LEVEL"]? || "info").to_s)
+LOG       = Logger.new(STDOUT, level: LOG_LEVEL)
 
 module Kit
   VERSION = "0.3.0"

@@ -27,38 +27,43 @@ module Kit
                  ".*"
                end
 
-      output, version_cmd = general.output, general.version_cmd
-      if !output
+      output, version_cmd = File.expand_path(general.output.to_s), general.version_cmd
+      if output.empty?
         raise("Missing output location")
       end
 
       binaries = general.binaries
 
-      primary = [output, File.basename(binaries.first.to_s)].join("/")
+      LOG.debug("output") { output }
+      primary = File.expand_path([output, File.basename(binaries.first.to_s)].join("/"))
       # Only valid for full http links with tar.gz, fails for shorthand tar.gz on Github
       match = case {primary, version_cmd}
               when {String, String}
                 if File.exists?(primary) && File.executable?(primary)
-                  stdout, stderr, process = POpen.call(primary, [version_cmd].compact)
-                  version_string = [stdout.to_s, stderr.to_s].join(" ")
-                  LOG.debug(version_string)
-                  Regex.new(".*(#{version}).*").match(version_string)
+                  LOG.debug("primary file location") { [primary, version_cmd].join(" ") }
+                  Dir.cd(output) do
+                    stdout, stderr, process = POpen.call(primary, [version_cmd].compact)
+                    version_string = [stdout.to_s, stderr.to_s].join(" ")
+                    LOG.debug(version_string)
+                    Regex.new(".*(#{version}).*").match(version_string)
+                  end
                 else
                   Regex.new("x").match("y")
                 end
               end
       LOG.debug("match") { match }
-      unless match && match.captures.size > 0
+      unless (match && match.captures.size > 0)
         link = Core.resolve_link(link, filter)
-        response = Core.get(link)
-        LOG.debug("response") { response }
+        content = Core.get(link)
         filename = link.split("/").last
-        if response && filename
-          result = Core.write(response, sha256, filename, output, binaries)
+        if content && filename
+          result = Core.write(content, sha256, filename, output, binaries)
           if post_install = general.post_install
             LOG.info("post_install") { post_install }
             post_install.each do |hook|
-              Process.run("bash", ["-c", hook.to_s], chdir: output)
+              Dir.cd(output) do
+                POpen.call("bash", ["-c", hook.to_s])
+              end
             end
           end
           LOG.info("result") { result }
