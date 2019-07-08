@@ -1,5 +1,6 @@
 require "spec"
 require "mocks"
 require "mocks/spec"
+require "webmock"
 require "../src/kit"
 require "../src/kit/adapters/*"

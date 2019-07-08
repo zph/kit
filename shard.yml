@@ -9,8 +9,16 @@ targets:
     main: src/kit.cr
 
 dependencies:
+  crz:
+    github: dhruvrajvanshi/crz
+    version: ~> 1.0.0
   tempdir:
     github: sam0x17/tempdir
+
+development_dependencies:
+  webmock:
+    github: manastech/webmock.cr
+    branch: master
   mocks:
     github: waterlink/mocks.cr
     version: ~> 0.9
