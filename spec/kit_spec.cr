@@ -99,27 +99,54 @@ describe Kit do
   end
 
   describe URI do
+    gh = "github"
+    tag = "v0.3.0"
+    repo = "zph/moresql"
+
     it "defaults fragment to latest" do
-      gh = "github"
-      tag = "v0.3.0"
-      repo = "zph/moresql"
       Kit::URI.new("github://#{repo}").latest?.should eq(true)
     end
 
     it "handles long form of github urls" do
-      gh = "github"
-      tag = "v0.3.0"
-      repo = "zph/moresql"
       Kit::URI.new("github://#{repo}#v0.3.0").uri.scheme.should eq(gh)
       Kit::URI.new("github://#{repo}#v0.3.0").uri.fragment.should eq(tag)
     end
 
     it "handles short form of github urls" do
-      gh = "github"
-      tag = "v0.3.0"
-      repo = "zph/moresql"
       Kit::URI.new("#{repo}#v0.3.0").uri.scheme.should eq(gh)
       Kit::URI.new("#{repo}#v0.3.0").uri.fragment.should eq(tag)
+    end
+
+    defaults_yaml = Kit::Config.from_yaml(IO::Memory.new(%q{
+---
+version: v1
+binaries:
+  jq:
+    general:
+      output: data
+      binaries:
+      - jq
+    platform:
+      darwin:
+        link: github://stedolan/jq#jq-1.6
+        version: jq-1.6
+        sha256: 5c0a0a3ea600f302ee458b30317425dd9632d1ad8882259fcaf4e9b868b2b1ef
+      }))
+
+    it "sets defaults in YAML config for version_cmd" do
+      defaults_yaml.binaries["jq"].general.version_cmd.should eq("--version")
+    end
+
+    it "sets the default filter value for config" do
+      defaults_yaml.binaries["jq"].platform["darwin"].filter.should eq(".*")
+    end
+
+    it "uses full path for output field" do
+      defaults_yaml.binaries["jq"].general.output.should match(/kit\/data$/)
+    end
+
+    it "sets default post_install hook" do
+      defaults_yaml.binaries["jq"].general.post_install.should eq(["chmod +x jq"])
     end
   end
 end

@@ -17,43 +17,28 @@ module Kit
       link = bin.link
       # Allow for nil pattern matching on fn heads
       link, sha256, version = bin.link, bin.sha256, bin.version
-      if !link
-        raise("Missing link")
-      end
 
-      filter = if f = bin.filter
-                 f
-               else
-                 ".*"
-               end
-
-      output, version_cmd = File.expand_path(general.output.to_s), general.version_cmd
-      if output.empty?
-        raise("Missing output location")
-      end
+      output, version_cmd = general.output, general.version_cmd
 
       binaries = general.binaries
 
       LOG.debug("output") { output }
-      primary = File.expand_path([output, File.basename(binaries.first.to_s)].join("/"))
+      primary = general.primary
       # Only valid for full http links with tar.gz, fails for shorthand tar.gz on Github
-      match = case {primary, version_cmd}
-              when {String, String}
-                if File.exists?(primary) && File.executable?(primary)
-                  LOG.debug("primary file location") { [primary, version_cmd].join(" ") }
-                  Dir.cd(output) do
-                    stdout, stderr, process = POpen.call(primary, [version_cmd].compact)
-                    version_string = [stdout.to_s, stderr.to_s].join(" ")
-                    LOG.debug(version_string)
-                    Regex.new(".*(#{version}).*").match(version_string)
-                  end
-                else
-                  Regex.new("x").match("y")
+      match = if File.exists?(primary) && File.executable?(primary)
+                LOG.debug("primary file location") { [primary, version_cmd].join(" ") }
+                Dir.cd(output) do
+                  stdout, stderr, process = POpen.call(primary, [version_cmd].compact)
+                  version_string = [stdout.to_s, stderr.to_s].join(" ")
+                  LOG.debug(version_string)
+                  Regex.new(".*(#{version}).*").match(version_string)
                 end
+              else
+                Regex.new("x").match("y")
               end
       LOG.debug("match") { match }
       unless (match && match.captures.size > 0)
-        link = Core.resolve_link(link, filter)
+        link = Core.resolve_link(link, bin.filter)
         content = Core.get(link)
         filename = link.split("/").last
         if content && filename

@@ -21,12 +21,21 @@ module Kit
 
       @[YAML::Field(key: "post_install")]
       property post_install : Array(String)?
+      getter(post_install) { ["chmod +x #{binaries.join(", ")}"] }
 
       @[YAML::Field(key: "output")]
-      property output : String?
+      property output : String = FileUtils.pwd
+
+      def output
+        File.expand_path(@output.to_s)
+      end
 
       @[YAML::Field(key: "version_cmd")]
-      property version_cmd : String?
+      property version_cmd : String? = "--version"
+
+      def primary
+        File.expand_path([output, File.basename(binaries.first.to_s)].join("/"))
+      end
     end
 
     class Platform
@@ -42,7 +51,7 @@ module Kit
       property sha256 : String?
 
       @[YAML::Field(key: "filter")]
-      property filter : String?
+      property filter : String? = ".*"
     end
 
     class Binary
