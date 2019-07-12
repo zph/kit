@@ -1,4 +1,5 @@
 require "yaml"
+require "file_utils"
 
 module Kit
   class Config
