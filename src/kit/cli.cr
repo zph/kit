@@ -56,7 +56,7 @@ module Kit
       else
         LOG.info("Version is current") { [binaryname, match] }
       end
-      done.send(1)
+      done.send(0)
     end
 
     def self.call(config : Config)
@@ -64,15 +64,23 @@ module Kit
       done = Channel(Int32).new
       binaries.each do |k, v|
         spawn do
-          process_request(k, v, done)
+          begin
+            process_request(k, v, done)
+          rescue e
+            LOG.error("Fiber crashed: #{k}") { e }
+            done.send(1)
+          end
         end
       end
 
       # Wait for threads to finish
       # TODO: handle orphaned threads if something fails
+      exit_status = 0
       binaries.keys.size.times do
-        done.receive
+        exit_status += done.receive
       end
+
+      exit(exit_status)
     end
   end
 end
