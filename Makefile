@@ -1,4 +1,4 @@
-src = $(wildcard bin/*.cr) $(wildcard src/*.cr)
+src = $(wildcard bin/*.cr) $(wildcard src/**/*.cr)
 output = dist/kit
 bin = bin/kit.cr
 DIR := ${CURDIR}
@@ -31,20 +31,13 @@ $(output_linux): $(src)
 # Credit: https://relativkreativ.at/articles/how-to-compile-a-crystal-project-with-static-linking
 linux: $(output_linux)
 
-all: $(output_linux) $(output_darwin)
+all: fmt $(output_linux) $(output_darwin)
 
 
-test:
+test: fmt
 	bats spec/acceptance.bats && crystal spec
 
 # Credit: https://github.com/c4milo/github-release/blob/master/Makefile
-# release: dist
-# 	@latest_tag=$$(git describe --tags `git rev-list --tags --max-count=1`); \
-# 	comparison="$$latest_tag..HEAD"; \
-# 	if [ -z "$$latest_tag" ]; then comparison=""; fi; \
-# 	changelog=$$(git log $$comparison --oneline --no-merges); \
-# 	github-release c4milo/$(NAME) $(VERSION) "$$(git rev-parse --abbrev-ref HEAD)" "**Changelog**<br/>$$changelog" 'dist/*'; \
-# 	git pull
 release: all
 	@latest_tag=$$(git describe --tags `git rev-list --tags --max-count=1`) && \
 	comparison="$$latest_tag..HEAD" && \
