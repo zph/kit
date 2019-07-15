@@ -46,16 +46,21 @@ module Kit
             match = Dir.glob("#{@dir}/{**/#{bin},#{bin}}").uniq
               .tap { |m| LOG.debug("glob_matches") { m } }
               .select do |m|
-              # Pin exact file binary name match
-              File.basename(m) == bin &&
-                File.file?(m)
-            end
+                # Pin exact file binary name match
+                File.basename(m) == bin &&
+                  File.file?(m)
+              end
             LOG.debug("glob") { match }
 
             if match && match.size == 1
               Binary.new([bin], "", @outputname).process(match.first)
             else
-              raise("Unable to find binary too many matching names #{match}")
+              first_match = match.sort_by { |s| s.chars.count { |a| a } }
+              LOG.error("Unable to find binary too many matching names #{match}")
+              LOG.error("Using first match #{first_match}")
+              # Choose the shortest pathed binary, because it's likely to be
+              # more desireable than one embedded deep in folder structures.
+              Binary.new([bin], "", @outputname).process(first_match)
             end
           end
         end
