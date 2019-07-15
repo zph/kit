@@ -1,9 +1,6 @@
 # TODO:
 # - Add tar.bz2 handling (various based on extension)
-# - Add callbacks - bash hooks with ENV setup so it can operate on the variables from here when called through Process
-# - Use link: github://ORG/REPO/RELEASE_NAME syntax + this
-# ---- curl https://api.github.com/repos/stedolan/jq/releases/tags/jq-1.6 | jq '.assets[] | .browser_download_url'
-# ---- and judicious use of Regexes to guess the right things to install
+# - Add callbacks - bash hooks with ENV setup (KIT_BINARY, KIT_BINARIES, KIT_*) so it can operate on the variables from here when called through Process
 module Kit
   class URI
     def initialize(@link : String)
@@ -177,6 +174,8 @@ module Kit
       case
       when Archive::Targz.match?(filename)
         Archive::Targz.new(binaries, dir.to_s, outputname).process(tmpfile)
+      when extname.match(/(zip|tar\.bz2?|xz)/)
+        raise "Unhandled extension type #{extname}"
       else
         Binary.copy(tmpfile, outputname, binaries.first)
       end
