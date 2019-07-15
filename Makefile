@@ -35,7 +35,7 @@ all: $(output_linux) $(output_darwin)
 
 
 test:
-	bats spec/acceptance.bats
+	bats spec/acceptance.bats && crystal spec
 
 # Credit: https://github.com/c4milo/github-release/blob/master/Makefile
 # release: dist

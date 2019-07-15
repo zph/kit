@@ -1,6 +1,6 @@
 # TODO:
-# - Add tar.bz2 handling (various based on extension)
 # - Add callbacks - bash hooks with ENV setup (KIT_BINARY, KIT_BINARIES, KIT_*) so it can operate on the variables from here when called through Process
+
 module Kit
   class URI
     def initialize(@link : String)
@@ -65,80 +65,6 @@ module Kit
       end
     end
 
-    class Binary
-      def self.copy(src, folder, file)
-        output = [folder, file].join("/")
-        LOG.info("output, src") { [output, src] }
-        FileUtils.cp(src, File.expand_path(output))
-        File.expand_path(output)
-      end
-    end
-
-    module Archive
-      abstract class Base
-        abstract def process(tmpfile : String)
-      end
-
-      #       class Tarbz < Base
-      #         def initialize(@binaries, @dir, @outputname)
-      #         end
-
-      #         def self.extensions
-      #           [/tar\.bz$/, /tar\.bz2$/]
-      #         end
-
-      #         def self.match?(filename)
-      #           extensions.find { |e| e.match(filename) }
-      #         end
-
-      #         def process(tmpfile)
-      #         end
-      #       end
-
-      class Targz < Base
-        def initialize(@binaries : Array(String), @dir : String, @outputname : String)
-        end
-
-        def self.extensions
-          [/tar\.gz$/, /tgz$/]
-        end
-
-        def self.match?(filename)
-          extensions.find { |e| e.match(filename) }
-        end
-
-        def extract(tmpfile, dir)
-          stdout, stderr, process = POpen.call("tar", ["-xvf", tmpfile, "-C", dir])
-          LOG.debug("output") { [stdout.to_s, stderr.to_s, process] }
-          [stdout, stderr, process]
-        end
-
-        def process_archive
-          @binaries.to_a.map do |bin|
-            match = Dir.glob("#{@dir}/{**/#{bin},#{bin}}").uniq
-              .tap { |m| LOG.debug("glob_matches") { m } }
-              .select do |m|
-                # Pin exact file binary name match
-                File.basename(m) == bin &&
-                  File.file?(m)
-              end
-            LOG.debug("glob") { match }
-
-            if match && match.size == 1
-              Binary.copy(match.first, @outputname, bin)
-            else
-              raise("Unable to find binary too many matching names #{match}")
-            end
-          end
-        end
-
-        def process(tmpfile)
-          extract(tmpfile, @dir)
-          process_archive
-        end
-      end
-    end
-
     def self.compare_digest(body, sha256 : Nil)
       LOG.info("digest") { "Not provided, skipping verification" }
       digest = OpenSSL::Digest.new("sha256").update(body).hexdigest
@@ -167,17 +93,16 @@ module Kit
 
       # Builtin extname parses in way that's not helpful to us (.gz, instead of full .tar.gz)
       # Remove fragment in case its present
-      extname = filename.split("#").first.split(".", 2).last.downcase
+      extname = filename.downcase.split("#").first.split(".", 2).last
 
       FileUtils.mkdir_p(outputname)
       LOG.debug("filename") { filename }
+      type = Filetype.type?(filename)
       case
-      when Archive::Targz.match?(filename)
-        Archive::Targz.new(binaries, dir.to_s, outputname).process(tmpfile)
-      when extname.match(/(zip|tar\.bz2?|xz)/)
-        raise "Unhandled extension type #{extname}"
+      when type
+        type.new(binaries, dir.to_s, outputname).process(tmpfile)
       else
-        Binary.copy(tmpfile, outputname, binaries.first)
+        raise "Unhandled extension type #{extname}"
       end
     end
   end

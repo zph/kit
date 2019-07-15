@@ -44,8 +44,8 @@ module Kit
         if content && filename
           result = Core.write(content, sha256, filename, output, binaries)
           if post_install = general.post_install
-            LOG.info("post_install") { post_install }
             post_install.each do |hook|
+              LOG.info("post_install hook") { hook }
               Dir.cd(output) do
                 POpen.call("bash", ["-c", hook.to_s])
               end
