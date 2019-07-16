@@ -20,7 +20,7 @@ module Kit
 
       def process(src)
         output = [folder, binary].join("/")
-        LOG.info("paths") { {src: src, output: output} }
+        LOG.info("paths") { {src: src, output: output, folder: folder, binary: binary} }
         FileUtils.cp(src, File.expand_path(output))
         File.expand_path(output)
       end
@@ -53,6 +53,7 @@ module Kit
             LOG.debug("glob") { match }
 
             if match && match.size == 1
+              LOG.error("copying") { {bin: bin, outputname: @outputname, match: match.first}}
               Binary.new([bin], "", @outputname).process(match.first)
             else
               first_match = match.sort_by { |s| s.chars.count { |a| a } }

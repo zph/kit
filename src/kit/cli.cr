@@ -20,19 +20,19 @@ module Kit
 
       output, version_cmd = general.output, general.version_cmd
 
+      output_folder = File.expand_path(output.to_s)
+
       binaries = general.binaries
 
-      LOG.debug("output") { output }
+      LOG.debug("output_folder") { output_folder }
       primary = general.primary
       # Only valid for full http links with tar.gz, fails for shorthand tar.gz on Github
       match = if File.exists?(primary) && File.executable?(primary)
                 LOG.debug("primary file location") { [primary, version_cmd].join(" ") }
-                Dir.cd(output) do
-                  stdout, stderr, process = POpen.call(primary, [version_cmd].compact)
-                  version_string = [stdout.to_s, stderr.to_s].join(" ")
-                  LOG.debug(version_string)
-                  Regex.new(".*(#{version}).*").match(version_string)
-                end
+                stdout, stderr, process = POpen.call(primary, [version_cmd].compact, chdir: output_folder)
+                version_string = [stdout.to_s, stderr.to_s].join(" ")
+                LOG.debug(version_string)
+                Regex.new(".*(#{version}).*").match(version_string)
               else
                 Regex.new("x").match("y")
               end
@@ -42,13 +42,11 @@ module Kit
         content = Core.get(link)
         filename = link.split("/").last
         if content && filename
-          result = Core.write(content, sha256, filename, output, binaries)
+          result = Core.write(content, sha256, filename, output_folder, binaries)
           if post_install = general.post_install
             post_install.each do |hook|
               LOG.info("post_install hook") { hook }
-              Dir.cd(output) do
-                POpen.call("bash", ["-c", hook.to_s])
-              end
+              POpen.call("bash", ["-c", hook.to_s], chdir: output_folder)
             end
           end
           LOG.info("result") { result }

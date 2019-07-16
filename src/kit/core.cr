@@ -95,14 +95,19 @@ module Kit
       # Remove fragment in case its present
       extname = filename.downcase.split("#").first.split(".", 2).last
 
-      FileUtils.mkdir_p(outputname)
+      if ! Dir.exists?(outputname)
+        LOG.debug("creating missing directory") { outputname }
+        FileUtils.mkdir_p(outputname)
+      end
+
       LOG.debug("filename") { filename }
       type = Filetype.type?(filename)
       case
       when type
         type.new(binaries, dir.to_s, outputname).process(tmpfile)
       else
-        raise "Unhandled extension type #{extname}"
+        LOG.warn("Unable to identify extension type assuming binary")
+        Filetype::Binary.new(binaries, dir.to_s, outputname).process(tmpfile)
       end
     end
   end
