@@ -53,7 +53,7 @@ module Kit
           extensions.find { |e| Regex.new("#{Regex.escape(e)}$", Regex::Options::IGNORE_CASE).match(filename) }
         end
 
-        def initialize(@binaries : Array(String), @dir : String, @outputname : String)
+        def initialize(@binaries : Array(String), @dir : String, @output_folder : String)
         end
 
         def process_archive
@@ -68,15 +68,15 @@ module Kit
             LOG.debug("glob") { match }
 
             if match && match.size == 1
-              LOG.error("copying") { {bin: bin, outputname: @outputname, match: match.first} }
-              Binary.new([bin], "", @outputname).process(match.first)
+              LOG.error("copying") { {bin: bin, output_folder: @output_folder, match: match.first} }
+              Binary.new([bin], "", @output_folder).process(match.first)
             else
               first_match = match.sort_by { |s| s.chars.count { |a| a } }
               LOG.error("Unable to find binary too many matching names #{match}")
               LOG.error("Using first match #{first_match}")
               # Choose the shortest pathed binary, because it's likely to be
               # more desireable than one embedded deep in folder structures.
-              Binary.new([bin], "", @outputname).process(first_match)
+              Binary.new([bin], "", @output_folder).process(first_match)
             end
           end
         end

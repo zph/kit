@@ -83,7 +83,7 @@ module Kit
       end
     end
 
-    def self.write(content, sha256, filename, outputname, binaries)
+    def self.write(content, sha256, filename, output_folder, binaries)
       dir = TempDir.new "kit"
       tmpfile = [dir.to_s, filename].join("/")
       LOG.info("tmpfile") { tmpfile }
@@ -93,19 +93,19 @@ module Kit
 
       extname = Filetype.extension(filename)
 
-      if !Dir.exists?(outputname)
-        LOG.info("creating missing directory") { outputname }
-        FileUtils.mkdir_p(outputname)
+      if !Dir.exists?(output_folder)
+        LOG.info("creating missing directory") { output_folder }
+        FileUtils.mkdir_p(output_folder)
       end
 
       LOG.debug("filename") { filename }
       type = Filetype.type?(filename)
       case
       when type
-        type.new(binaries, dir.to_s, outputname).process(tmpfile)
+        type.new(binaries, dir.to_s, output_folder).process(tmpfile)
       else
         LOG.warn("Unable to identify extension type assuming binary")
-        Filetype::Binary.new(binaries, dir.to_s, outputname).process(tmpfile)
+        Filetype::Binary.new(binaries, dir.to_s, output_folder).process(tmpfile)
       end
     end
   end
