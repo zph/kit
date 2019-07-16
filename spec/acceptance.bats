@@ -1,17 +1,6 @@
 #!/usr/bin/env bats
 
-# BIN="./dist/kit-darwin-amd64"
-BIN="crystal run bin/kit.cr --"
-
-global_setup(){
-  make clean > /dev/null && \
-    crystal build bin/kit.cr -o dist/kit-darwin-amd64 > /dev/null && \
-    chmod +x "$BIN" > /dev/null
-}
-
-global_teardown(){
-  make clean > /dev/null
-}
+BIN="bin/run"
 
 setup(){
   TEST_TMP_DIR="$(mktemp -d)"
@@ -20,8 +9,6 @@ setup(){
 teardown(){
   rm -rf "$TEST_TMP_DIR"
 }
-
-# global_setup
 
 @test "invoking kit with a stedolan/jq" {
   run $BIN --install stedolan/jq -o "$TEST_TMP_DIR"
@@ -67,8 +54,6 @@ teardown(){
 
 @test "invoking kit with a config file" {
   skip
-  run crystal run bin/kit.cr -- --config "$HOME/src/kit/spec/config_test.yaml"
+  run $BIN -- --config "$HOME/src/kit/spec/config_test.yaml"
   [ "$status" -eq 0 ]
 }
-
-# global_teardown

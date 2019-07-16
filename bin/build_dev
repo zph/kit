@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -CEeuo pipefail
+IFS=$'\n\t'
+shopt -s extdebug
+
+OS="$(uname -a | awk '{print tolower($1)}')"
+
+make "build_dev_$OS"

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -CEeuo pipefail
+IFS=$'\n\t'
+shopt -s extdebug
+
+BIN="dist/kit-darwin-amd64-dev"
+
+make build_dev > /dev/null
+
+chmod +x "$BIN"
+
+"./$BIN" "$@"

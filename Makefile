@@ -2,11 +2,18 @@ src = $(wildcard bin/*.cr) $(wildcard src/**/*.cr)
 output = dist/kit
 bin = bin/kit.cr
 DIR := ${CURDIR}
+BUILD_FLAGS := $(shell ${BUILD_FLAGS:-"--release"})
 output_linux := $(output)-linux-amd64
 output_darwin := $(output)-darwin-amd64
+output_darwin_fast := $(output)-darwin-amd64-dev
 installed := ~/bin_local/kit
 
 build: $(output_darwin)
+build_dev:
+	bash bin/build_dev
+
+build_dev_darwin: $(output_darwin_fast)
+build_dev_linux: $(output_linux_fast)
 
 install: $(installed)
 
@@ -25,8 +32,14 @@ play:
 $(output_darwin): $(src)
 	crystal build --release $(bin) -o $(output_darwin)
 
+$(output_darwin_fast): $(src)
+	crystal build $(bin) -o $(output_darwin_fast)
+
 $(output_linux): $(src)
 	docker run --rm -it -v $(DIR):/app -w /app durosoft/crystal-alpine crystal build $(bin) -o $(output_linux) --release --static
+
+$(output_linux_fast): $(src)
+	docker run --rm -it -v $(DIR):/app -w /app durosoft/crystal-alpine crystal build $(bin) -o $(output_linux)
 
 # Credit: https://relativkreativ.at/articles/how-to-compile-a-crystal-project-with-static-linking
 linux: $(output_linux)
