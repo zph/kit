@@ -59,7 +59,7 @@ release: all
 	./data/github-release zph/kit v$(shell crystal run bin/kit.cr -- --version) "$(shell git rev-parse --abbrev-ref HEAD)" "**Changelog**<br/>$$changelog" 'dist/kit-*-amd64' && \
 		git pull
 
-fmt:
+fmt: $(src)
 	crystal tool format
 
 .PHONY: run play linux fmt clean

@@ -1,7 +1,7 @@
 ---
 version: v1
 defaults: &defaults
-  output: ~/tmp/kit/bin
+  output: $TEST_TMP_DIR
   version_cmd: "--version"
 binaries:
   jq:
