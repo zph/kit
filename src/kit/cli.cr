@@ -58,10 +58,11 @@ module Kit
     end
 
     def self.call(config : Config)
+      # TODO: Use worker pool
       binaries = config.binaries
       done = Channel(Int32).new
       binaries.each do |k, v|
-        spawn do
+        spawn(name: k) do
           begin
             process_request(k, v, done)
           rescue e
@@ -71,8 +72,6 @@ module Kit
         end
       end
 
-      # Wait for threads to finish
-      # TODO: handle orphaned threads if something fails
       exit_status = 0
       binaries.keys.size.times do
         exit_status += done.receive

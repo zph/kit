@@ -13,6 +13,13 @@ sha256 = nil
 help = false
 filter = ".*"
 
+[Signal::KILL, Signal::INT].each do |sig|
+  sig.trap do
+    puts "Exiting from program due to signal #{sig}"
+    exit(sig.value + 100)
+  end
+end
+
 o = OptionParser.parse! do |parser|
   parser.banner = ["Usage: kit -c kit.yaml",
                    "From Github      : kit -i stedolan/jq -o ~/bin",
