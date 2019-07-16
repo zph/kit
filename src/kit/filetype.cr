@@ -7,6 +7,21 @@ module Kit
        Archive::Tarbz].find { |t| t.match?(filename) }
     end
 
+    def self.extension(filename)
+      # Builtin extname parses in way that's not helpful to us (.gz, instead of full .tar.gz)
+      # Remove fragment in case its present
+      ext = File.basename(filename)
+        .downcase                    # Standardize
+        .split("#").first            # Remove fragment
+        .gsub(/v?\d+\.\d+\.\d+/, "") # Remove semvar markings that break logic
+      case
+      when ext.includes?(".")
+        ext.split(".", 2).last
+      else
+        nil
+      end
+    end
+
     class Binary
       getter(binary : String) { @binaries.first }
       getter folder
@@ -53,7 +68,7 @@ module Kit
             LOG.debug("glob") { match }
 
             if match && match.size == 1
-              LOG.error("copying") { {bin: bin, outputname: @outputname, match: match.first}}
+              LOG.error("copying") { {bin: bin, outputname: @outputname, match: match.first} }
               Binary.new([bin], "", @outputname).process(match.first)
             else
               first_match = match.sort_by { |s| s.chars.count { |a| a } }

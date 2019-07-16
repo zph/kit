@@ -148,5 +148,33 @@ binaries:
     it "sets default post_install hook" do
       defaults_yaml.binaries["jq"].general.post_install.should eq(["chmod +x jq"])
     end
+
+    it "parses filename to extract extension" do
+      Kit::Filetype.extension("foo.tar.bz2").should eq("tar.bz2")
+    end
+
+    it "parses filename to extract extension zip" do
+      Kit::Filetype.extension("foo.zip").should eq("zip")
+    end
+
+    it "parses paths with decimals correctly for filetype" do
+      link = "chamber-v2.3.3-darwin-amd64"
+      Kit::Filetype.extension(link).should eq(nil)
+    end
+
+    it "parses paths with decimals correctly for filetype with real extension" do
+      link = "chamber-v2.3.3-darwin-amd64.tar.gz"
+      Kit::Filetype.extension(link).should eq("tar.gz")
+    end
+
+    it "parses paths with decimals correctly for filetype with alternate ordering" do
+      link = "chamber-darwin-amd64-v2.3.3.tar.gz"
+      Kit::Filetype.extension(link).should eq("tar.gz")
+    end
+
+    it "parses paths with decimals correctly for filetype with semvar without v" do
+      link = "chamber-darwin-amd64-2.3.3.tar.gz"
+      Kit::Filetype.extension(link).should eq("tar.gz")
+    end
   end
 end

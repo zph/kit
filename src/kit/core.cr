@@ -91,12 +91,10 @@ module Kit
 
       compare_digest(content, sha256)
 
-      # Builtin extname parses in way that's not helpful to us (.gz, instead of full .tar.gz)
-      # Remove fragment in case its present
-      extname = filename.downcase.split("#").first.split(".", 2).last
+      extname = Filetype.extension(filename)
 
-      if ! Dir.exists?(outputname)
-        LOG.debug("creating missing directory") { outputname }
+      if !Dir.exists?(outputname)
+        LOG.info("creating missing directory") { outputname }
         FileUtils.mkdir_p(outputname)
       end
 
