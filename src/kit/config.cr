@@ -28,7 +28,7 @@ module Kit
       property output : String = FileUtils.pwd
 
       def output
-        File.expand_path(@output.to_s)
+        File.expand_path(EnvTemplating.replace(@output.to_s))
       end
 
       @[YAML::Field(key: "version_cmd")]

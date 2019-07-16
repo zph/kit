@@ -2,6 +2,19 @@
 # - Add callbacks - bash hooks with ENV setup (KIT_BINARY, KIT_BINARIES, KIT_*) so it can operate on the variables from here when called through Process
 
 module Kit
+  module EnvTemplating
+    def self.replace(str, env : Process::Env = ENV.to_h)
+      if str.includes?("$")
+        env.reduce(str) do |acc, kv|
+          k, v = kv
+          acc = acc.gsub(/\$#{k}/, v)
+        end
+      else
+        str
+      end
+    end
+  end
+
   class URI
     def initialize(@link : String)
       @uri = ::URI.parse(@link)
@@ -83,6 +96,7 @@ module Kit
       end
     end
 
+    # TODO: write straight to output folder instead of tmp when possible
     def self.write(content, sha256, filename, output_folder, binaries)
       dir = TempDir.new "kit"
       tmpfile = [dir.to_s, filename].join("/")

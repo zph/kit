@@ -176,5 +176,26 @@ binaries:
       link = "chamber-darwin-amd64-2.3.3.tar.gz"
       Kit::Filetype.extension(link).should eq("tar.gz")
     end
+
+    it "parses output folder using environmental variables" do
+      general = Kit::Config::General.from_yaml(%q{
+binaries: []
+output: $HOME/data
+      })
+      general.output.should eq([ENV["HOME"], "data"].join("/"))
+    end
+
+    it "parses output folder using tilde as alias for home" do
+      general = Kit::Config::General.from_yaml(%q{
+binaries: []
+output: ~/data
+      })
+      general.output.should eq([ENV["HOME"], "data"].join("/"))
+    end
+
+    it "replaces environmental variables with value" do
+      Kit::EnvTemplating.replace("$HOME", {"HOME" => "foo"}).should eq("foo")
+      Kit::EnvTemplating.replace("$HOME/data", {"HOME" => "/foo"}).should eq("/foo/data")
+    end
   end
 end
