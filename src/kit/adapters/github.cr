@@ -24,6 +24,15 @@ module Kit
           JSON.parse(response.body.to_s).as_h
         end
 
+        def self.search(query)
+          response = HTTP::Client.get("#{ENDPOINT}/search/repositories?q=#{query}")
+          if response.success?
+            JSON.parse(response.body.to_s).as_h
+          else
+            raise("Failure to fetch API response for search #{response}")
+          end
+        end
+
         def extract_download_urls(json)
           json["assets"].as_a.map { |r| r["browser_download_url"].to_s }
         end

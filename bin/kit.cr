@@ -3,6 +3,7 @@
 require "../src/kit"
 
 require "option_parser"
+require "tallboy"
 
 install = nil
 destination = FileUtils.pwd
@@ -13,6 +14,7 @@ sha256 = nil
 help = false
 filter = ".*"
 upgrade = false
+query = nil
 
 [Signal::KILL, Signal::INT].each do |sig|
   sig.trap do
@@ -34,6 +36,7 @@ o = OptionParser.parse! do |parser|
   parser.on("-f FILTER", "--filter=FILTER", "Download link filter") { |n| filter = n }
   parser.on("-t TAG", "--tag=TAG", "Specifies the tag to install") { |n| version = n }
   parser.on("-s SHA", "--sha256=SHA", "Specifies the sha256 to verify") { |n| sha256 = n }
+  parser.on("-q TERM", "--query=TERM", "Search Github for a term and offer best results to install") { |n| query = n }
   parser.on("-u", "--upgrade", "Upgrade kit in place (assumes default name)") { upgrade = true }
   parser.on("-h", "--help", "Show help") { help = true; puts parser }
   parser.on("-v", "--version", "Show version") { puts Kit::VERSION; exit }
@@ -89,17 +92,33 @@ def individual_install(uri, destination, binaries : Array(String), version, sha2
   by_config(Kit::Config.from_yaml(config))
 end
 
-case {config, install, destination, binaries, help, upgrade}
-when {_, _, _, _, _, true}
+case {config, install, destination, binaries, help, upgrade, query}
+when {_, _, String, _, _, _, String}
+  result = Kit::Adapters::Github::API.search(query.to_s)
+  columns = ["full_name", "language", "description", "stargazers_count", "score"]
+  data = [["#", columns].flatten]
+  items = result["items"].as_a
+  items.first(5).each_with_index(1) do |i, index|
+    data << [index.to_s, ["full_name", "language", "description", "stargazers_count", "score"].map { |k| i[k].to_s[0..80] }].flatten
+  end
+
+  table = Tallboy::Table.new(data)
+  puts table.render
+  print "Enter the # of your choice to install followed by enter: "
+  desired_index = read_line.chomp.to_i
+  repo = items[desired_index - 1]["full_name"].to_s
+  binaries = [repo.split("/").last.strip("/")]
+  individual_install(repo, destination, binaries, nil, nil, nil)
+when {_, _, _, _, _, true, _}
   destination = File.dirname(PROGRAM_NAME)
   individual_install("zph/kit", destination, ["kit"], nil, nil, nil)
-when {String, _, _, _, _, _}
+when {String, _, _, _, _, _, _}
   by_config(config)
-when {_, String, String, Nil, _, _}
+when {_, String, String, Nil, _, _, _}
   # Allow shorthand that skips specifying binaries for simple cases
   binaries = [URI.parse(install.to_s).path.split("/").last.strip("/")]
   individual_install(install, destination, binaries, version, sha256, filter)
-when {_, String, String, Array(String), _, _}
+when {_, String, String, Array(String), _, _, _}
   individual_install(install, destination, binaries, version, sha256, filter)
 else
   if help
