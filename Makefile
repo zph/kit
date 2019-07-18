@@ -50,6 +50,9 @@ all: fmt $(output_linux) $(output_darwin)
 test: fmt
 	bats spec/acceptance.bats && crystal spec
 
+tag:
+	git tag -a v$(./bin/run -- --version) -m "$(./bin/run -- --version)"
+
 # Credit: https://github.com/c4milo/github-release/blob/master/Makefile
 release: all
 	@latest_tag=$$(git describe --tags `git rev-list --tags --max-count=1`) && \
