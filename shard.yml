@@ -16,6 +16,9 @@ dependencies:
     github: sam0x17/tempdir
   tallboy:
     github: epoch/tallboy
+  halite:
+    github: icyleaf/halite
+    version: ~> 0.10
 
 development_dependencies:
   webmock:

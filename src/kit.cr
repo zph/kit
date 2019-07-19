@@ -4,6 +4,7 @@ require "tempdir"
 require "logger"
 require "yaml"
 require "openssl"
+require "halite"
 
 require "./kit/**"
 

@@ -56,25 +56,10 @@ module Kit
       uri = ::URI.parse(link)
       case uri.scheme
       when "https", "http"
-        get_http(link).body
+        Halite.follow.get(link).body
       when "file"
         # "file://~/tmp/kit/bin/jq"
         File.read(link.split("//", 2).last)
-      end
-    end
-
-    def self.get_http(link)
-      loop do
-        response = HTTP::Client.get(link)
-        LOG.info("status_code") { response.status_code }
-        case response.status_code
-        when 302
-          link = response.headers["Location"]
-        when 200
-          return response
-          break
-        else
-        end
       end
     end
 
