@@ -4,6 +4,10 @@ shards:
     github: dhruvrajvanshi/crz
     version: 1.0.0
 
+  halite:
+    github: icyleaf/halite
+    version: 0.10.2
+
   mocks:
     github: waterlink/mocks.cr
     version: 0.9.6

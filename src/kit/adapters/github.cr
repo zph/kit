@@ -11,26 +11,12 @@ module Kit
         end
 
         def get(route)
-          response = HTTP::Client.get("#{ENDPOINT}/repos/#{@org}/#{@repo}#{route}")
-          if response.success?
-            response
-          else
-            raise("Failure to fetch API response for #{@org}/#{@repo} #{response}")
-          end
-        end
-
-        def get_json(route)
-          response = get(route)
-          JSON.parse(response.body.to_s).as_h
+          response = Halite.get([ENDPOINT, "/", route.join("/")].join)
+          response.parse("json").as_h
         end
 
         def self.search(query)
-          response = HTTP::Client.get("#{ENDPOINT}/search/repositories?q=#{query}")
-          if response.success?
-            JSON.parse(response.body.to_s).as_h
-          else
-            raise("Failure to fetch API response for search #{response}")
-          end
+          response = get(["search", "repositories?q=#{query}"])
         end
 
         def extract_download_urls(json)
@@ -38,12 +24,12 @@ module Kit
         end
 
         def asset_urls_by_release_tag_name(tag : Nil)
-          h = get_json("/releases/latest")
+          h = get(["repos", @org, @repo, "releases", "latest"])
           extract_download_urls(h)
         end
 
         def asset_urls_by_release_tag_name(tag_name)
-          h = get_json("/releases/tags/#{tag_name}")
+          h = get(["repos", @org, @repo, "releases", "tags", tag_name])
           extract_download_urls(h)
         end
 
