@@ -16,7 +16,7 @@ module Kit
         end
 
         def self.search(query)
-          response = get(["search", "repositories?q=#{query}"])
+          response = new("", "").get(["search", "repositories?q=#{query}"])
         end
 
         def extract_download_urls(json)
