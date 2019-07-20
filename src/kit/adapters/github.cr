@@ -39,17 +39,27 @@ module Kit
         end
 
         def filter_links(links : Array(String), filter) : String
+          LOG.debug("links") { links }
           matches = links.each_with_object(Hash(String, Int32).new(0)) do |link, acc|
-            [/#{filter}/,
-             OS.platform.to_regex,
-             /#{OS.arch.to_name}/i,
-             /(gz|bz2)$/i,
-            ].each do |r|
-              acc[link] += is_match(link, r)
+            [{3, /#{filter}/},
+             {5, OS.platform.to_regex},
+             {2, /#{OS.arch.to_name}/i},
+             {1, /(gz|bz2)$/i},
+            ].each do |count, r|
+              acc[link] += if is_match(link, r)
+                             count
+                           else
+                             0
+                           end
             end
 
-            acc[link] -= is_match(link, /sha\d+/i)
+            acc[link] -= if is_match(link, /sha\d+/i)
+                           1
+                         else
+                           0
+                         end
           end.map { |k, v| [k, v] }.sort_by! { |x| x[1].to_i }.reverse
+          LOG.debug("matches") { matches }
           if matches.size == 0
             raise("No matches found from #{links}")
           else
@@ -59,8 +69,8 @@ module Kit
 
         EMPTY = [] of Int32
 
-        def is_match(link, regex : Regex) : Int32
-          (link.match(regex) || EMPTY).size
+        def is_match(link, regex : Regex) : Bool
+          (link.match(regex) || EMPTY).size > 0
         end
       end
     end

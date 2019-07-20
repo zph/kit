@@ -12,9 +12,9 @@ module Kit
       def to_regex
         case self
         when Darwin
-          /#{to_name}|osx/
+          /#{to_name}|osx/i
         else
-          /#{to_name}/
+          /#{to_name}/i
         end
       end
     end
