@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -CEeuo pipefail
+IFS=$'\n\t'
+shopt -s extdebug
+
+cmd="$1"
+
+case "$cmd" in
+  --version)
+    echo "0.9.0"
+esac

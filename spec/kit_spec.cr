@@ -197,5 +197,15 @@ output: ~/data
       Kit::EnvTemplating.replace("$HOME", {"HOME" => "foo"}).should eq("foo")
       Kit::EnvTemplating.replace("$HOME/data", {"HOME" => "/foo"}).should eq("/foo/data")
     end
+
+    it "gets version from binary" do
+      Kit::Versioning.new("#{Dir.current}/spec/fixtures/version_tester").get("--version").should eq("0.9.0")
+    end
+
+    it "tries matching against all version flags" do
+      flags = ["--version", "version", "-V", "-v", "-version"]
+      Kit::Versioning.new("#{Dir.current}/spec/fixtures/version_tester").match_any?(flags, "0.9.0").should eq(true)
+      Kit::Versioning.new("#{Dir.current}/spec/fixtures/version_tester").match_any?(flags, "0.101.0").should eq(false)
+    end
   end
 end

@@ -26,18 +26,10 @@ module Kit
 
       LOG.debug("output_folder") { output_folder }
       primary = general.primary
-      # Only valid for full http links with tar.gz, fails for shorthand tar.gz on Github
-      match = if File.exists?(primary) && File.executable?(primary)
-                LOG.debug("primary file location") { [primary, version_cmd].join(" ") }
-                stdout, stderr, process = POpen.call(primary, [version_cmd].compact, chdir: output_folder)
-                version_string = [stdout.to_s, stderr.to_s].join(" ")
-                LOG.debug(version_string)
-                Regex.new(".*(#{version}).*").match(version_string)
-              else
-                Regex.new("x").match("y")
-              end
-      LOG.debug("match") { match }
-      unless (match && match.captures.size > 0)
+
+      flags = ([version_cmd.to_s] + ["--version", "version", "-V", "-v", "-version"]).uniq
+
+      unless Versioning.new(primary).match_any?(flags, version)
         link = Core.resolve_link(link, bin.filter)
         content = Core.get(link)
         filename = link.split("/").last
@@ -52,7 +44,7 @@ module Kit
           LOG.info("result") { result }
         end
       else
-        LOG.info("Version is current") { [binaryname, match] }
+        LOG.info("Version is current") { [binaryname, version] }
       end
       done.send(0)
     end
