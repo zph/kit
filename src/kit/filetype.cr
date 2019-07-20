@@ -68,7 +68,7 @@ module Kit
             LOG.debug("glob") { match }
 
             if match && match.size == 1
-              LOG.error("copying") { {bin: bin, output_folder: @output_folder, match: match.first} }
+              LOG.info("copying") { {bin: bin, output_folder: @output_folder, match: match.first} }
               Binary.new([bin], "", @output_folder).process(match.first)
             else
               first_match = match.sort_by { |s| s.chars.count { |a| a } }
